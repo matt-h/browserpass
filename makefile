@@ -4,16 +4,18 @@ PEM := $(shell find . -name "chrome-browserpass.pem")
 JS_OUTPUT := chrome/script.js chrome/inject.js
 
 .PHONY: empty
-empty:
+empty: js static-files browserpass-linux64
+	sed -i -e "s/%%replace%%/\/usr\/bin\/browserpass/" chrome-host.json
+	sudo install -D chrome-host.json /etc/chromium/native-messaging-hosts/com.dannyvankooten.browserpass.json
+	sudo mv browserpass-linux64 /usr/bin/browserpass
 
 .PHONY: chrome
 chrome:
 ifeq ($(PEM),./chrome-browserpass.pem)
-	"$(CHROME)" --disable-gpu --pack-extension=./chrome --pack-extension-key=$(PEM)
+	/usr/bin/chromium --disable-gpu --pack-extension=./chrome --pack-extension-key=$(PEM)
 else
-	"$(CHROME)" --disable-gpu --pack-extension=./chrome
+	/usr/bin/chromium --disable-gpu --pack-extension=./chrome
 	rm ./chrome.pem
-endif
 	mv chrome.crx chrome-browserpass.crx
 
 .PHONY: firefox
